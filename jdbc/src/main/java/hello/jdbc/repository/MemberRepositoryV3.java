@@ -1,20 +1,27 @@
 package hello.jdbc.repository;
 
-import hello.jdbc.connection.DBConnectionUtil;
 import hello.jdbc.domain.Member;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.JdbcUtils;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.sql.DataSource;
+import java.sql.*;
 import java.util.NoSuchElementException;
 
 /**
- * JDBC - DriverManager 사용
+ * 트랜잭션 - 트랜잭션 매니저
+ * DataSourceUtils.getConnection()
+ * DataSourceUtils.releaseConnection()
  */
 @Slf4j
-public class MemberRepositoryVO {
+public class MemberRepositoryV3 {
+
+    private final DataSource dataSource;
+
+    public MemberRepositoryV3(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     public Member save(Member member) throws SQLException {
         String sql = "insert into member(member_id, money) values(?,?)";
@@ -67,6 +74,7 @@ public class MemberRepositoryVO {
         }
     }
 
+
     public void update(String memberId, int money) throws SQLException {
         String sql = "update member set money=? where member_id=?";
 
@@ -88,6 +96,7 @@ public class MemberRepositoryVO {
         }
     }
 
+
     public void delete(String memberId) throws SQLException {
         String sql = "delete from member where member_id=?";
 
@@ -108,34 +117,18 @@ public class MemberRepositoryVO {
         }
     }
 
-    private void close(Connection con, PreparedStatement pstmt, ResultSet rs) {
 
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                log.error("error", e);
-            }
-        }
-
-        if (pstmt != null) {
-            try {
-                pstmt.close();
-            } catch (SQLException e) {
-                log.error("error", e);
-            }
-        }
-
-        if (con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                log.error("error", e);
-            }
-        }
+    private void close(Connection con, Statement stmt, ResultSet rs) {
+        JdbcUtils.closeResultSet(rs);
+        JdbcUtils.closeStatement(stmt);
+        //주의! 트랜잭션 동기화를 사용하려면 DataSourceUtils를 사용해야 한다.
+        DataSourceUtils.releaseConnection(con, dataSource);
     }
 
-    private Connection getConnection() {
-        return DBConnectionUtil.getConnection();
+    private Connection getConnection() throws SQLException {
+        //주의! 트랜잭션 동기화를 사용하려면 DataSourceUtils를 사용해야 한다.
+        Connection con = DataSourceUtils.getConnection(dataSource);
+        log.info("get connection={}, class={}", con, con.getClass());
+        return con;
     }
 }
