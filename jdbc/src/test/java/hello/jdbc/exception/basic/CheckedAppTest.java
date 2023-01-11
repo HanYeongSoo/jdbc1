@@ -11,7 +11,7 @@ import java.sql.SQLException;
 public class CheckedAppTest {
 
     @Test
-    void checked() {
+    void unchecked() {
         Controller controller = new Controller();
 
         Assertions.assertThatThrownBy(() -> controller.request())
@@ -22,7 +22,7 @@ public class CheckedAppTest {
     static class Controller {
         Service service = new Service();
 
-        public void request() throws SQLException, ConnectException {
+        public void request() {
             service.logic();
         }
     }
@@ -31,21 +31,43 @@ public class CheckedAppTest {
         Repository repository = new Repository();
         NetworkClient networkClient = new NetworkClient();
 
-        public void logic() throws SQLException, ConnectException {
+        public void logic() {
             repository.call();
             networkClient.call();
         }
     }
 
     static class NetworkClient {
-        public void call() throws ConnectException {
-            throw new ConnectException("연결 실패");
+        public void call() {
+            throw new RuntimeConnectException("연결 실패");
         }
     }
 
     static class Repository {
-        public void call() throws SQLException {
+        public void call() {
+            try {
+                runSQL();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private void runSQL() throws SQLException {
             throw new SQLException("ex");
+        }
+    }
+
+    static class RuntimeConnectException extends RuntimeException {
+        public RuntimeConnectException(String message) {
+            super(message);
+        }
+    }
+
+    static class RuntimeSQLException extends RuntimeException {
+        public RuntimeSQLException() {}
+
+        public RuntimeSQLException(Throwable cause) {
+            super(cause);
         }
     }
 }
