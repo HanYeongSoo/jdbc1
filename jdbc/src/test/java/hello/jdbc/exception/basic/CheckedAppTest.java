@@ -18,6 +18,18 @@ public class CheckedAppTest {
                 .isInstanceOf(Exception.class);
     }
 
+    @Test
+    void printEx() {
+        Controller controller = new Controller();
+
+        try {
+            controller.request();
+        } catch (Exception e) {
+//            e.printStackTrace();
+            log.info("Exception!!", e);
+        }
+    }
+
 
     static class Controller {
         Service service = new Service();
@@ -48,7 +60,7 @@ public class CheckedAppTest {
             try {
                 runSQL();
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeSQLException(e);
             }
         }
 
