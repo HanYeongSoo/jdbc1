@@ -3,8 +3,7 @@ package hello.jdbc.Service;
 
 import hello.jdbc.domain.Member;
 import hello.jdbc.repository.MemberRepository;
-import hello.jdbc.repository.MemberRepositoryV4_1;
-import hello.jdbc.repository.MemberRepositoryV4_2;
+import hello.jdbc.repository.MemberRepositoryV5;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -62,7 +61,8 @@ class MemberServiceV4Test {
         @Bean
         MemberRepository memberRepository() {
 //            return new MemberRepositoryV4_1(dataSource); //단순 예외 변환
-            return new MemberRepositoryV4_2(dataSource); //스프링 예외 변환
+//            return new MemberRepositoryV4_2(dataSource); //스프링 예외 변환
+            return new MemberRepositoryV5(dataSource); //JdbcTemplate 사용
         }
 
         @Bean
@@ -89,13 +89,13 @@ class MemberServiceV4Test {
         memberRepository.save(memberB);
 
         //when
-        memberService.accountTransfer(memberA.getMemberId(), memberB.getMemberId(), 3000);
+        memberService.accountTransfer(memberA.getMemberId(), memberB.getMemberId(), 2000);
 
         //then
         Member findMemberA = memberRepository.findById(memberA.getMemberId());
         Member findMemberB = memberRepository.findById(memberB.getMemberId());
-        assertThat(findMemberA.getMoney()).isEqualTo(7000);
-        assertThat(findMemberB.getMoney()).isEqualTo(13000);
+        assertThat(findMemberA.getMoney()).isEqualTo(8000);
+        assertThat(findMemberB.getMoney()).isEqualTo(12000);
     }
 
     @Test
